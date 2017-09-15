@@ -12,6 +12,7 @@ the opponent's knights/bishops to get your own!
 ![some moves made](img/game2.jpg)
 
 Here, Black captures White's knight.
+
 ![capturing pieces](img/game3.jpg)
 ![drop a piece down](img/game4.jpg)
 
