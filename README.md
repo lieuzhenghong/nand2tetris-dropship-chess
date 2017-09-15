@@ -1,14 +1,14 @@
 # Dropship Chess
-![splash_screen]("img/instructions.jpg")
+![splash_screen](img/instructions.jpg)
 Chess played on a 6x6 board.
 You can "drop" enemy pieces you've captured anywhere on the board as your own.
 White starts with two knights and Black with two bishops—so you have to capture
 the opponent's knights/bishops to get your own!
-![start-of-the-game]("img/game1.jpg")
-![some moves made]("img/game2.jpg")
+![start-of-the-game](img/game1.jpg)
+![some moves made](img/game2.jpg)
 Here, Black captures White's knight.
-![capturing pieces]("img/game3.jpg")
-![drop a piece down]("img/game4.jpg")
+![capturing pieces](img/game3.jpg)
+![drop a piece down](img/game4.jpg)
 Black can now drop the knight to push the attack.
 
 ## Installation instructions
