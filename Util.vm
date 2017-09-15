@@ -1,0 +1,30 @@
+function Util.mod 0
+label WHILE_EXP0
+push argument 0
+push argument 1
+push constant 1
+sub
+gt
+not
+if-goto WHILE_END0
+push argument 0
+push argument 1
+sub
+pop argument 0
+goto WHILE_EXP0
+label WHILE_END0
+push argument 0
+return
+function Util.abs 0
+push argument 0
+push constant 0
+lt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 0
+neg
+pop argument 0
+label IF_FALSE0
+push argument 0
+return

@@ -1,0 +1,629 @@
+class Board {
+  // Properties of the board itself
+  field Array grid;
+  field int columns, rows;
+  field Array whites_hostages, blacks_hostages;
+
+  // Properties of the game
+  field Array legal_moves;
+  field int current_player;
+  field int sel_square, start_square, end_square;
+  field Boolean currently_moving_a_piece;
+
+  // Properties of airdropped pieces
+  field Boolean airdropping;
+  field int airdropping_square, airdropping_piece;
+
+  constructor Board new(int cols, int rows) {
+    var int i;
+    let grid = Array.new((cols * rows));
+    let sel_square = 0;
+    let currently_moving_a_piece = false;
+    let current_player = 0;
+    do reset(cols, rows);
+    return this;
+  }
+
+  method int get_square(int idx) {
+    return grid[idx];
+  }
+
+  method int get_cursor() {
+    return sel_square;
+  }
+
+  method Array get_grid() {
+    return grid;
+  }
+
+  method int get_hostage(int player, int idx) {
+    if (player) { // Black
+      return blacks_hostages[idx];
+    }
+    else {
+      return whites_hostages[idx];
+    }
+  }
+
+  method Array get_legal_moves_pawn(int sel_square) {
+    var int direction, num_of_directions, num_of_legal_moves;
+    var Array legal_moves, directions;
+    var int piece_colour;
+    var int next_square, next_piece, next_colour;
+
+    let piece_colour = grid[sel_square] / 16;
+    let legal_moves = Array.new(9);
+
+    let num_of_directions = 3;
+    let directions = Array.new(num_of_directions);
+
+    if (piece_colour = 0) {
+      let directions[0] = -7;
+      let directions[1] = -6;
+      let directions[2] = -5;
+    }
+    else {
+      let directions[0] =  5;
+      let directions[1] =  6;
+      let directions[2] =  7;
+    }
+    let direction = 0;
+    let num_of_legal_moves = 0;
+    
+    while(direction < num_of_directions) {
+      let next_square = sel_square + directions[direction];
+      if (next_square > -1 & next_square < 36) {
+        let next_piece = grid[next_square];
+        if (next_piece = 0 & ((directions[direction] = 6) | (directions[direction] = -6))) {
+          let num_of_legal_moves = num_of_legal_moves + 1;
+          let legal_moves[num_of_legal_moves] = next_square;
+        }
+        else {
+          // Pawn maximum reach is 2
+          if (Board.get_distance(sel_square, next_square) < 3) {
+            if (~(next_piece = 0)) {
+              let next_colour = next_piece / 16; 
+              if (~(next_colour = piece_colour)) {
+                let num_of_legal_moves = num_of_legal_moves + 1;
+                let legal_moves[num_of_legal_moves] = next_square;
+              }
+            }
+          }
+        }
+      }
+      let direction = direction + 1;
+    }
+
+
+    let legal_moves[0] = num_of_legal_moves;
+    return legal_moves;
+  }
+
+
+  method Array get_legal_moves_knight(int sel_square) {
+    var int piece_colour;
+    var int num_of_legal_moves;
+    var Array directions, legal_moves;
+    var int direction;
+    var int next_colour, next_square;
+
+    let directions = Array.new(8);
+    let directions[0] = -13;
+    let directions[1] = -11;
+    let directions[2] =  -8;
+    let directions[3] =  -4;
+    let directions[4] =   4;
+    let directions[5] =   8;
+    let directions[6] =  11;
+    let directions[7] =  13;
+
+    let direction = 0;
+    let legal_moves = Array.new(9);
+    let piece_colour = grid[sel_square] / 16;
+
+    while (direction < 8) {
+      let next_square = sel_square + directions[direction];
+      if (next_square > -1 & next_square < 36) {
+        // Check distance to rule out impossible squares
+        if (Board.get_distance(sel_square, next_square) < 4) {
+          if (grid[next_square] = 0) { // Empty square
+            // Check euclidean distance to eliminate too-far square
+              let num_of_legal_moves = num_of_legal_moves + 1;
+              let legal_moves[num_of_legal_moves] = next_square;
+          }
+          else { // Hit piece
+            let next_colour = grid[next_square] / 16;
+            // Check that you're not eating your own piece
+            if (~(next_colour = piece_colour)) { 
+              let num_of_legal_moves = num_of_legal_moves + 1;
+              let legal_moves[num_of_legal_moves] = next_square;
+            }
+          }
+        }
+      }
+      let direction = direction + 1;
+    }
+    let legal_moves[0] = num_of_legal_moves;
+    return legal_moves;
+  }
+
+  method Array get_legal_moves_BRQ(int sel_square) {
+    var Array directions, legal_moves;
+    var int direction, total_directions;
+    var Boolean hit_piece;
+    var int next_square;
+    var int num_of_legal_moves;
+    var int piece_colour, piece_type, next_colour;
+
+    let piece_type = grid[sel_square];
+    let piece_colour = 0;
+
+    if ((piece_type - 16) > 0) {
+      let piece_type = piece_type - 16;
+      let piece_colour = 1;
+    }
+  
+    let legal_moves = Array.new(36);
+    
+    if (piece_type = 6) { // Bishop
+      let directions = Array.new(4);
+      let total_directions = 4;
+      let directions[0] = -7;
+      let directions[1] = -5;
+      let directions[2] =  5;
+      let directions[3] =  7;
+    }
+
+    if (piece_type = 8) { // Rook
+      let directions = Array.new(4);
+      let total_directions = 4;
+      let directions[0] = -6;
+      let directions[1] = -1;
+      let directions[2] =  1;
+      let directions[3] =  6;
+    }
+
+    if (piece_type = 10) { // Queen
+      let directions = Array.new(8);
+      let total_directions = 8;
+      let directions[0] = -7;
+      let directions[1] = -6;
+      let directions[2] = -5;
+      let directions[3] = -1;
+      let directions[4] =  1;
+      let directions[5] =  5;
+      let directions[6] =  6;
+      let directions[7] =  7;
+    }
+
+    let direction = 0;
+    while (direction < total_directions) {
+      let hit_piece = false;
+      let next_square = sel_square + (directions[direction]);
+      let next_colour = (grid[next_square] / 16);
+
+      while (next_square > -1 & (next_square < 36 & ~hit_piece)) {
+        if (grid[next_square] = 0) {
+          let num_of_legal_moves = num_of_legal_moves + 1;
+          let legal_moves[num_of_legal_moves] = next_square;
+        }
+        else {
+          let next_colour = (grid[next_square] / 16);
+          let hit_piece = true;
+          if (~(next_colour = piece_colour)) {
+            let num_of_legal_moves = num_of_legal_moves +1;
+            let legal_moves[num_of_legal_moves] = next_square;
+          }
+        }
+        let next_square = next_square + directions[direction];
+      }
+      let direction = direction + 1;
+    }
+    let legal_moves[0] = num_of_legal_moves;
+    return legal_moves;
+  }
+
+  method Array get_legal_moves_king(int sel_square) {
+    var int direction, num_of_directions, num_of_legal_moves;
+    var Array legal_moves, directions;
+    var int piece_colour;
+    var int next_square, next_piece, next_colour;
+
+    let piece_colour = grid[sel_square] / 16;
+    let legal_moves = Array.new(9);
+
+    let num_of_directions = 8;
+    let directions = Array.new(num_of_directions);
+    let directions[0] = -7;
+    let directions[1] = -6;
+    let directions[2] = -5;
+    let directions[3] = -1;
+    let directions[4] =  1;
+    let directions[5] =  5;
+    let directions[6] =  6;
+    let directions[7] =  7;
+    let direction = 0;
+
+    let num_of_legal_moves = 0;
+
+    while (direction < num_of_directions) {
+      let next_square = sel_square + directions[direction];
+      let next_piece = grid[next_square];
+      let next_colour = next_piece / 16;
+
+    if (Board.get_distance(sel_square, next_square) < 3) {
+      if (next_square > -1 & next_square < 36) {
+        if (next_piece = 0) {
+          let num_of_legal_moves = num_of_legal_moves + 1;
+          let legal_moves[num_of_legal_moves] = next_square;
+        }
+        else {
+          if (~(next_colour = piece_colour)) {
+            let num_of_legal_moves = num_of_legal_moves + 1;
+            let legal_moves[num_of_legal_moves] = next_square;
+          }
+        }
+      }
+    }
+      let direction = direction + 1;
+    }
+
+    let legal_moves[0] = num_of_legal_moves;
+    return legal_moves;
+  }
+
+  method Array get_legal_moves_airdrop(int airdropping_square) {
+    var int square_no;
+    var int num_of_legal_moves;
+    var Array legal_moves;
+
+    let legal_moves = Array.new(36);
+
+    while (square_no < 36) {
+      if (grid[square_no] = 0) {
+        // Pawns cannot airdrop onto the last rank: TODO
+        let num_of_legal_moves = num_of_legal_moves + 1; 
+        let legal_moves[num_of_legal_moves] = square_no;
+      }
+      let square_no = square_no + 1;
+    }
+    let legal_moves[0] = num_of_legal_moves;
+    return legal_moves;
+  }
+
+  method Array get_legal_moves(int sel_square) {
+    var int piece;
+
+    if (airdropping) {
+      let legal_moves = get_legal_moves_airdrop(sel_square);
+    }
+
+    else {
+      let piece = grid[sel_square];
+      if (piece > 16) {
+        let piece = piece - 16;
+      }
+
+      if (piece = 0) {
+        let legal_moves = Array.new(1);
+        let legal_moves[0] = 0;
+      }
+
+      // Pawn
+      if (piece = 2) {
+        let legal_moves = get_legal_moves_pawn(sel_square);
+      }
+
+      // Knight
+      if (piece = 4) {
+        let legal_moves = get_legal_moves_knight(sel_square);
+      }
+
+      // Bishop, Rook or Queen
+      if ((piece = 6) | (piece = 8) | (piece = 10)) {
+        let legal_moves = get_legal_moves_BRQ(sel_square); 
+      }
+
+      // King
+      if (piece = 12) {
+        let legal_moves = get_legal_moves_king(sel_square);
+      }
+    }
+
+    return legal_moves;
+  }
+
+  function int get_distance(int S, int E) {
+    var int distance;
+    var int S_x, S_y, E_x, E_y;
+    let S_x = Util.mod(S, 6);
+    let S_y = (S / 6);
+    let E_x = Util.mod(E, 6);
+    let E_y = (E / 6);
+
+    let distance = Util.abs(S_x - E_x) + Util.abs(S_y - E_y);
+    return distance;
+  }
+
+  method void choose_airdrop_piece(int index) {
+    let airdropping = true;
+    let airdropping_square = index;
+    if (current_player = 0) {
+      let airdropping_piece = whites_hostages[index];
+    }
+    else {
+      let airdropping_piece = blacks_hostages[index];
+    }
+    let currently_moving_a_piece = true;
+    return;
+  }
+
+  method void advance_next_player() {
+    if (current_player = 0) {
+      let current_player = 1;
+      do Output.moveCursor(22, 26);
+      do Output.printString("Black to move"); 
+    }
+    else {
+      let current_player = 0;
+      do Output.moveCursor(22, 26);
+      do Output.printString("White to move"); 
+    }
+    return;
+  }
+
+  method void make_move() {
+    var Array legal_moves;
+    var Boolean move_is_legal;
+    var int i;
+    var int piece_colour;
+    var int hostage_count;
+    var int start_piece, end_piece;
+
+    let legal_moves = Array.new(36);
+    let i = 1;
+    let move_is_legal = false;
+    let hostage_count = 0;
+
+    if (airdropping) {
+      let start_piece = airdropping_piece;
+    }
+    else {
+      let start_piece = grid[start_square];
+    }
+
+    let piece_colour = grid[sel_square] / 16;
+
+    // 1. Check if we are currently moving a piece; if not, check if player has
+    // selected the wrong colour
+    // 2. Check legal moves, both for airdrop and normal
+
+    if (~currently_moving_a_piece) {
+      // Check piece colour and short circuit if player selects
+      // a colour he's not supposed to
+      if (~(piece_colour = current_player)) {
+        do cancel_move();
+        return;
+      }
+      else {
+        let start_square = sel_square;
+        let currently_moving_a_piece = true;
+        return;
+      }
+    }
+    
+    if (airdropping) {
+      let legal_moves = get_legal_moves(airdropping_square);
+    }
+    else {
+      let legal_moves = get_legal_moves(start_square);
+    }
+    let end_square = sel_square;
+
+    // If end_square in legal_moves, carry on
+    // Check that end_square is in legal_moves; the first element of
+    // legal_moves is its length (like a Pascal case string);
+
+    while (i < (legal_moves[0] + 1)) {
+      if (end_square = legal_moves[i]) {
+        let move_is_legal = true;
+      }
+      let i = i + 1;
+    }
+      
+    if (~(move_is_legal)) {
+      do cancel_move();
+      return;
+    }
+
+    else {
+      if (grid[end_square]) { // If we hit a piece
+        // Check if a King was taken. If so, end the game and display the
+        // winner
+        if ((grid[end_square] = 12) | (grid[end_square] = 28)) {
+          if (grid[end_square] = 12) {
+            let grid[end_square] = grid[start_square];
+            let grid[start_square] = 0;
+            do Output.moveCursor(22, 24);
+            do Output.printString("Black wins, 0-1"); 
+            return;
+          }
+          if (grid[end_square] = 28) {
+            let grid[end_square] = grid[start_square];
+            let grid[start_square] = 0;
+            do Output.moveCursor(22, 24);
+            do Output.printString("White wins, 1-0"); 
+            return;
+          }
+        }
+        else {
+          // We didn't hit a King, but we hit another piece
+          if ((grid[end_square] - 16) < 0) {
+            while (hostage_count < 12) {
+              if (blacks_hostages[hostage_count] = 0) {
+                let blacks_hostages[hostage_count] = grid[end_square] + 16;
+                let hostage_count = 12;
+              }
+              let hostage_count = hostage_count + 1;
+            }
+          }
+          else {
+            while (hostage_count < 12) {
+              if (whites_hostages[hostage_count] = 0) {
+                let whites_hostages[hostage_count] = grid[end_square] - 16;
+                let hostage_count = 12;
+              }
+              let hostage_count = hostage_count + 1;
+            }
+          }
+        }
+      }
+      else { // We made a move to an empty square
+        // If airdropping, remove the airdropped piece from the hostage zone so
+        // it can't be used again
+        if (airdropping) {
+          if (current_player = 0) {
+            let whites_hostages[airdropping_square] = 0;
+          }
+          else {
+            let blacks_hostages[airdropping_square] = 0;
+          }
+          let hostage_count = hostage_count + 1;
+        }
+      }
+
+      // Move and reset to initial state
+      if (airdropping) {
+        let grid[end_square] = airdropping_piece;
+        let airdropping_piece = 0;
+        let airdropping_square = 0;
+        let airdropping = false;
+      }
+      else {
+        let grid[end_square] = grid[start_square];
+        let grid[start_square] = 0;
+      }
+
+      let currently_moving_a_piece = false;
+      do advance_next_player();
+      return;
+    }
+  }
+
+  method void cancel_move() {
+    let sel_square = 0;
+    let start_square = 0;
+    let end_square = 0;
+    let airdropping_piece = 0;
+    let airdropping_square = 0;
+    let airdropping = false;
+    let currently_moving_a_piece = false;
+    return;
+  }
+
+/** Takes in the cursor and moves right. If at rightmost, wraps around */
+  method void move_right() {
+    if (Util.mod(sel_square+1, 6) > 0) {
+      let sel_square = sel_square + 1;
+    }
+    else {
+      let sel_square = sel_square - 5;
+    }
+    return;
+  }
+
+  method void move_left() {
+    if (Util.mod(sel_square, 6) > 0) {
+      let sel_square = sel_square - 1;
+    }
+    else {
+      let sel_square = sel_square + 5;
+    }
+    return;
+  }
+  
+  method void move_up() {
+    if ((sel_square - 6) < 0) {
+      let sel_square = sel_square + 30;
+    }
+    else {
+      let sel_square = sel_square - 6;
+    }
+    return;
+  }
+
+  method void move_down() {
+    if ((sel_square + 6) > 35) {
+      let sel_square = sel_square - 30;
+    }
+    else {
+      let sel_square = sel_square + 6;
+    }
+    return;
+  }
+
+  method void reset(int cols, int rows) {
+    var int i, j, colour;
+    let grid = Array.new((cols * rows));
+    let whites_hostages = Array.new(12);
+    let blacks_hostages = Array.new(12);
+    let current_player = 0; // White starts first
+    let i = 0;
+    let j = 0;
+
+    // Reset the sideboard
+    while (j < 12) {  // maximum possible number of hostages
+      let whites_hostages[j] = 0;
+      let blacks_hostages[j] = 0;
+      let j = j + 1;
+    }
+
+    // Reset the game board
+    while (i < 36) {  // size of the 6x6 board
+      let grid[i] = 0;
+      let i = i + 1;
+    }
+    
+    // Populate the board with pieces
+    // RBQKBR
+    let grid[0] = 24; // Black rook
+    let grid[1] = 22; // Black bishop
+    let grid[2] = 26; // Black queen
+    let grid[3] = 28; // Black King
+    let grid[4] = 22; // Black bishop
+    let grid[5] = 24; // Black rook
+
+    // PPPPPP
+    let grid[6]  = 18; // Black pawn
+    let grid[7]  = 18; // Black pawn
+    let grid[8]  = 18; // Black pawn
+    let grid[9]  = 18; // Black pawn
+    let grid[10] = 18; // Black pawn
+    let grid[11] = 18; // Black pawn
+
+    // PPPPPP
+    let grid[24] = 2; // White pawn
+    let grid[25] = 2;
+    let grid[26] = 2;
+    let grid[27] = 2;
+    let grid[28] = 2;
+    let grid[29] = 2;
+
+    // RNQKNR
+    let grid[30] = 8; // White Rook
+    let grid[31] = 4; // White Knight
+    let grid[32] = 10; // White Queen
+    let grid[33] = 12; // White King
+    let grid[34] = 4;
+    let grid[35] = 8;
+
+
+    return;
+  }
+
+  method void move(int start_sq, int end_sq) {
+    let grid[end_sq] = grid[start_sq];
+    let grid[start_sq] = 0;
+    return;
+  }
+}

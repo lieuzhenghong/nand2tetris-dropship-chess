@@ -1,0 +1,73 @@
+Assign each piece an ID:
+0000 0000 0000 0000       : empty square
+0000 0000 0000 0001 (01)  : white pawn
+0000 0000 0001 0001 (17)  : black pawn
+0000 0000 0000 0010 (03)  : white Knight
+0000 0000 0001 0010 (19)  : black Knight
+0000 0000 0000 0011 (05)  : white Bishop
+0000 0000 0001 0011 (21)  : black Bishop
+0000 0000 0000 0100 (07)  : white Rook
+0000 0000 0001 0100 (23)  : black Rook
+0000 0000 0000 0101 (09)  : white Queen
+0000 0000 0001 0101 (25)  : black Queen
+000 0000 0000 0110 (11)  : white King
+0000 0000 0001 0110 (27)  : black King
+
+Quick reference:
+00    : blank square
+02/18 : pawn
+04/20 : knight
+06/22 : bishop
+08/24 : rook
+10/26 : queen
+12/28 : king
+
+Sprite sheets:
+00: white square
+01: black square
+02: WPW
+03: WPB
+04: WNW
+05: WNB
+06: WBW
+07: WBB
+08: WRW
+09: WRB
+10: WQW
+11: WQB
+12: WKW
+13: WKB
+
+18: BPW
+19: BPB
+20: BNW
+21: BNB
+22: BBW
+23: BBB
+24: BRW
+25: BRB
+26: BQW
+27: BQB
+28: BKW
+29: BKB
+
+0: W
+1: B
+2: W
+3: B
+4: W
+5: B
+
+6: B
+7: W
+8: B
+9: W
+10: B
+
+Algorithm for finding out the colour of a square is as follows:
+Square_number / 6, get the quotient Q
+If Q is even: even squares will be white, odd squares black
+If Q is odd: even squares will be black, odd squares white
+
+idx / 6 = Q
+idx % 2 = R
