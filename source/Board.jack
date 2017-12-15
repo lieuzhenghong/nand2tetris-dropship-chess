@@ -51,8 +51,8 @@ class Board {
     var int piece_colour;
     var int next_square, next_piece, next_colour;
 
-    let piece_colour = grid[sel_square] / 16;
     let legal_moves = Array.new(9);
+    let piece_colour = grid[sel_square] / 16;
 
     let num_of_directions = 3;
     let directions = Array.new(num_of_directions);
@@ -96,6 +96,7 @@ class Board {
 
 
     let legal_moves[0] = num_of_legal_moves;
+    do directions.dispose();
     return legal_moves;
   }
 
@@ -144,6 +145,7 @@ class Board {
       let direction = direction + 1;
     }
     let legal_moves[0] = num_of_legal_moves;
+    do directions.dispose();
     return legal_moves;
   }
 
@@ -220,6 +222,7 @@ class Board {
       let direction = direction + 1;
     }
     let legal_moves[0] = num_of_legal_moves;
+    do directions.dispose();
     return legal_moves;
   }
 
@@ -269,6 +272,7 @@ class Board {
     }
 
     let legal_moves[0] = num_of_legal_moves;
+    do directions.dispose();
     return legal_moves;
   }
 
@@ -362,12 +366,12 @@ class Board {
     if (current_player = 0) {
       let current_player = 1;
       do Output.moveCursor(22, 26);
-      do Output.printString("Black to move"); 
+      do Game.printString("Black to move"); 
     }
     else {
       let current_player = 0;
       do Output.moveCursor(22, 26);
-      do Output.printString("White to move"); 
+      do Game.printString("White to move"); 
     }
     return;
   }
@@ -428,15 +432,18 @@ class Board {
       if (end_square = legal_moves[i]) {
         let move_is_legal = true;
       }
+      do legal_moves.dispose();
       let i = i + 1;
     }
       
     if (~(move_is_legal)) {
       do cancel_move();
+      do legal_moves.dispose();
       return;
     }
 
     else {
+      do legal_moves.dispose();
       if (grid[end_square]) { // If we hit a piece
         // Check if a King was taken. If so, end the game and display the
         // winner
@@ -445,14 +452,14 @@ class Board {
             let grid[end_square] = grid[start_square];
             let grid[start_square] = 0;
             do Output.moveCursor(22, 24);
-            do Output.printString("Black wins, 0-1"); 
+            do Game.printString("Black wins, 0-1"); 
             return;
           }
           if (grid[end_square] = 28) {
             let grid[end_square] = grid[start_square];
             let grid[start_square] = 0;
             do Output.moveCursor(22, 24);
-            do Output.printString("White wins, 1-0"); 
+            do Game.printString("White wins, 1-0"); 
             return;
           }
         }
@@ -505,6 +512,7 @@ class Board {
       }
 
       let currently_moving_a_piece = false;
+      do legal_moves.dispose();
       do advance_next_player();
       return;
     }

@@ -64,6 +64,9 @@ label IF_END0
 function Board.get_legal_moves_pawn 9
 push argument 0
 pop pointer 0
+push constant 9
+call Array.new 1
+pop local 3
 push argument 1
 push this 0
 add
@@ -72,9 +75,6 @@ push that 0
 push constant 16
 call Math.divide 2
 pop local 5
-push constant 9
-call Array.new 1
-pop local 3
 push constant 3
 pop local 1
 push local 1
@@ -269,6 +269,9 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
+push local 4
+call Array.dispose 1
+pop temp 0
 push local 3
 return
 function Board.get_legal_moves_knight 7
@@ -460,6 +463,9 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
+push local 2
+call Array.dispose 1
+pop temp 0
 push local 3
 return
 function Board.get_legal_moves_BRQ 10
@@ -783,6 +789,9 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
+push local 0
+call Array.dispose 1
+pop temp 0
 push local 1
 return
 function Board.get_legal_moves_king 9
@@ -976,6 +985,9 @@ pop temp 0
 pop pointer 1
 push temp 0
 pop that 0
+push local 4
+call Array.dispose 1
+pop temp 0
 push local 3
 return
 function Board.get_legal_moves_airdrop 3
@@ -1238,7 +1250,7 @@ push constant 118
 call String.appendChar 2
 push constant 101
 call String.appendChar 2
-call Output.printString 1
+call Game.printString 1
 pop temp 0
 goto IF_END0
 label IF_FALSE0
@@ -1276,7 +1288,7 @@ push constant 118
 call String.appendChar 2
 push constant 101
 call String.appendChar 2
-call Output.printString 1
+call Game.printString 1
 pop temp 0
 label IF_END0
 push constant 0
@@ -1387,6 +1399,9 @@ push constant 0
 not
 pop local 1
 label IF_FALSE4
+push local 0
+call Array.dispose 1
+pop temp 0
 push local 2
 push constant 1
 add
@@ -1401,10 +1416,16 @@ label IF_TRUE5
 push pointer 0
 call Board.cancel_move 1
 pop temp 0
+push local 0
+call Array.dispose 1
+pop temp 0
 push constant 0
 return
 goto IF_END5
 label IF_FALSE5
+push local 0
+call Array.dispose 1
+pop temp 0
 push this 9
 push this 0
 add
@@ -1497,7 +1518,7 @@ push constant 45
 call String.appendChar 2
 push constant 49
 call String.appendChar 2
-call Output.printString 1
+call Game.printString 1
 pop temp 0
 push constant 0
 return
@@ -1568,7 +1589,7 @@ push constant 45
 call String.appendChar 2
 push constant 48
 call String.appendChar 2
-call Output.printString 1
+call Game.printString 1
 pop temp 0
 push constant 0
 return
@@ -1749,6 +1770,9 @@ pop that 0
 label IF_END15
 push constant 0
 pop this 10
+push local 0
+call Array.dispose 1
+pop temp 0
 push pointer 0
 call Board.advance_next_player 1
 pop temp 0
